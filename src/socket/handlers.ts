@@ -3,10 +3,21 @@
  * Decoupled socket event handlers with proper typing
  */
 
-import { TypedSocket, TypedServer, SocketEvents, JoinRoomPayload } from '../types/socket.types';
+import {
+  TypedSocket,
+  TypedServer,
+  SocketEvents,
+  JoinRoomPayload
+} from '../types/socket.types';
+
 import { userService } from '../services/user.service';
 import { messageService } from '../services/message.service';
-import { validate, joinRoomSchema, messageSchema } from '../validation/schemas';
+import {
+  validate,
+  joinRoomSchema,
+  messageSchema
+} from '../validation/schemas';
+
 import { createLogger } from '../services/logger.service';
 
 const logger = createLogger('SocketHandler');
@@ -15,8 +26,13 @@ const logger = createLogger('SocketHandler');
  * Broadcast room users update to all users in a room
  */
 function broadcastRoomUsers(io: TypedServer, room: string): void {
+
   const users = userService.getRoomUsers(room);
-  io.to(room).emit(SocketEvents.ROOM_USERS, { room, users });
+
+  io.to(room).emit(SocketEvents.ROOM_USERS, {
+    room,
+    users
+  });
 }
 
 /**
@@ -27,34 +43,56 @@ export function handleJoinRoom(
   socket: TypedSocket,
   data: JoinRoomPayload
 ): void {
-  logger.debug('Join room attempt', { socketId: socket.id, data });
+
+  logger.debug('Join room attempt', {
+    socketId: socket.id,
+    data
+  });
 
   // Validate input
   const validationResult = validate(joinRoomSchema, data);
+
   if (!validationResult.success) {
-    logger.warn('Join room validation failed', { 
-      socketId: socket.id, 
-      error: validationResult.error.message 
+
+    logger.warn('Join room validation failed', {
+      socketId: socket.id,
+      error: (validationResult as any).error?.message
     });
-    socket.emit(SocketEvents.USERNAME_ERROR, validationResult.error.message);
+
+    socket.emit(
+      SocketEvents.USERNAME_ERROR,
+      (validationResult as any).error?.message
+    );
+
     return;
   }
 
   const { username, room } = validationResult.data;
 
   // Attempt to join
-  const joinResult = userService.join(socket.id, username, room);
+  const joinResult = userService.join(
+    socket.id,
+    username,
+    room
+  );
+
   if (!joinResult.success) {
-    logger.warn('Join room failed', { 
-      socketId: socket.id, 
-      error: joinResult.error.message 
+
+    logger.warn('Join room failed', {
+      socketId: socket.id,
+      error: (joinResult as any).error?.message
     });
-    socket.emit(SocketEvents.USERNAME_ERROR, joinResult.error.message);
+
+    socket.emit(
+      SocketEvents.USERNAME_ERROR,
+      (joinResult as any).error?.message
+    );
+
     return;
   }
 
   const user = joinResult.data;
-  
+
   // Store user data in socket
   socket.data.user = user;
   socket.data.joinedAt = new Date();
@@ -62,21 +100,27 @@ export function handleJoinRoom(
   // Join the socket.io room
   socket.join(user.room);
 
-  // Welcome the current user
-  socket.emit(SocketEvents.MESSAGE, messageService.welcome());
+  // Welcome current user
+  socket.emit(
+    SocketEvents.MESSAGE,
+    messageService.welcome()
+  );
 
-  // Broadcast to others in room
+  // Broadcast to room
   socket.broadcast
     .to(user.room)
-    .emit(SocketEvents.MESSAGE, messageService.userJoined(user.username));
+    .emit(
+      SocketEvents.MESSAGE,
+      messageService.userJoined(user.username)
+    );
 
-  // Update room users list
+  // Update room users
   broadcastRoomUsers(io, user.room);
 
-  logger.info('User joined room successfully', { 
-    userId: socket.id, 
-    username: user.username, 
-    room: user.room 
+  logger.info('User joined room successfully', {
+    userId: socket.id,
+    username: user.username,
+    room: user.room
   });
 }
 
@@ -88,98 +132,129 @@ export function handleChatMessage(
   socket: TypedSocket,
   msg: string
 ): void {
-  const user = socket.data.user ?? userService.getById(socket.id);
+
+  const user =
+    socket.data.user ??
+    userService.getById(socket.id);
 
   if (!user) {
-    logger.warn('Message from unknown user', { socketId: socket.id });
+
+    logger.warn('Message from unknown user', {
+      socketId: socket.id
+    });
+
     socket.emit(SocketEvents.ERROR, {
       code: 'USER_NOT_FOUND',
       message: 'You must join a room first',
     });
+
     return;
   }
 
   // Validate message
-  const validationResult = validate(messageSchema, msg);
+  const validationResult = validate(
+    messageSchema,
+    msg
+  );
+
   if (!validationResult.success) {
+
     logger.warn('Message validation failed', {
       socketId: socket.id,
-      error: validationResult.error.message,
+      error: (validationResult as any).error?.message,
     });
+
     socket.emit(SocketEvents.ERROR, {
       code: 'INVALID_MESSAGE',
-      message: validationResult.error.message,
+      message: (validationResult as any).error?.message,
     });
+
     return;
   }
 
   const sanitizedMessage = validationResult.data;
 
-  // Update last activity
+  // Update activity
   socket.data.lastActivity = new Date();
 
-  // Broadcast message to room
+  // Broadcast message
   io.to(user.room).emit(
     SocketEvents.MESSAGE,
-    messageService.format(user.username, sanitizedMessage)
+    messageService.format(
+      user.username,
+      sanitizedMessage
+    )
   );
 
-  logger.debug('Message sent', { 
-    username: user.username, 
+  logger.debug('Message sent', {
+    username: user.username,
     room: user.room,
-    messageLength: sanitizedMessage.length 
+    messageLength: sanitizedMessage.length
   });
 }
 
 /**
- * Handle user typing indicator
+ * Handle typing indicator
  */
 export function handleTyping(
   socket: TypedSocket,
   data: { isTyping: boolean }
 ): void {
-  const user = socket.data.user ?? userService.getById(socket.id);
+
+  const user =
+    socket.data.user ??
+    userService.getById(socket.id);
 
   if (!user) return;
 
-  socket.broadcast.to(user.room).emit(SocketEvents.USER_TYPING, {
-    username: user.username,
-    isTyping: data.isTyping,
-  });
+  socket.broadcast
+    .to(user.room)
+    .emit(SocketEvents.USER_TYPING, {
+      username: user.username,
+      isTyping: data.isTyping,
+    });
 }
 
 /**
- * Handle user disconnect
+ * Handle disconnect
  */
-export function handleDisconnect(io: TypedServer, socket: TypedSocket): void {
+export function handleDisconnect(
+  io: TypedServer,
+  socket: TypedSocket
+): void {
+
   const user = userService.leave(socket.id);
 
   if (user) {
-    // Notify room
+
     io.to(user.room).emit(
       SocketEvents.MESSAGE,
       messageService.userLeft(user.username)
     );
 
-    // Update room users list
     broadcastRoomUsers(io, user.room);
 
-    logger.info('User disconnected', { 
-      userId: socket.id, 
-      username: user.username, 
-      room: user.room 
+    logger.info('User disconnected', {
+      userId: socket.id,
+      username: user.username,
+      room: user.room
     });
   }
 }
 
 /**
- * Register all socket event handlers
+ * Register socket handlers
  */
-export function registerSocketHandlers(io: TypedServer): void {
-  io.on(SocketEvents.CONNECTION, (socket: TypedSocket) => {
-    logger.debug('New connection', { socketId: socket.id });
+export function registerSocketHandlers(
+  io: TypedServer
+): void {
 
-    // Register event handlers
+  io.on(SocketEvents.CONNECTION, (socket: TypedSocket) => {
+
+    logger.debug('New connection', {
+      socketId: socket.id
+    });
+
     socket.on(SocketEvents.JOIN_ROOM, (data) => {
       handleJoinRoom(io, socket, data);
     });
@@ -196,9 +271,10 @@ export function registerSocketHandlers(io: TypedServer): void {
       handleDisconnect(io, socket);
     });
 
-    // Error handling for this socket
     socket.on('error', (error) => {
-      logger.error('Socket error', error, { socketId: socket.id });
+      logger.error('Socket error', error, {
+        socketId: socket.id
+      });
     });
   });
 
