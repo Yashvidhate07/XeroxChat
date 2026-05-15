@@ -1,6 +1,6 @@
 /**
  * Main Server Entry Point
- * Production-grade server setup with MySQL integration
+ * Production-grade server setup with Railway MySQL integration
  */
 
 import http from "http";
@@ -32,6 +32,7 @@ export const db = mysql.createConnection({
    user: process.env.DB_USER,
    password: process.env.DB_PASSWORD,
    database: process.env.DB_NAME,
+   port: Number(process.env.DB_PORT),
 });
 
 /**
@@ -43,7 +44,9 @@ db.connect((err) => {
 
       logger.error(
          "❌ MySQL connection failed",
-         err
+         {
+            error: err,
+         }
       );
 
    } else {
@@ -63,19 +66,21 @@ async function bootstrap(): Promise<void> {
    try {
 
       /**
-       * Create Express Application
+       * Create Express App
        */
       const app = createApp();
 
       /**
        * Create HTTP Server
        */
-      const server = http.createServer(app);
+      const server =
+         http.createServer(app);
 
       /**
        * Create Socket.IO Server
        */
-      const io = createSocketServer(server);
+      const io =
+         createSocketServer(server);
 
       /**
        * Configure Socket Middleware
@@ -91,7 +96,9 @@ async function bootstrap(): Promise<void> {
        * Server Port
        */
       const port =
-         config.env.PORT || 3000;
+         Number(process.env.PORT) ||
+         config.env.PORT ||
+         10000;
 
       /**
        * Start Server
@@ -103,7 +110,8 @@ async function bootstrap(): Promise<void> {
             {
                port,
                environment:
-                  config.env.NODE_ENV,
+                  process.env.NODE_ENV ||
+                  "production",
                version:
                   config.app.version,
             }
@@ -159,7 +167,7 @@ async function bootstrap(): Promise<void> {
       };
 
       /**
-       * Process Events
+       * Process Signals
        */
       process.on(
          "SIGTERM",
