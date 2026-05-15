@@ -1,84 +1,223 @@
 /**
  * Main Server Entry Point
- * Production-grade server setup with proper initialization
+ * Production-grade server setup with MySQL integration
  */
 
-import http from 'http';
-import { config } from './config';
-import { createApp } from './app/express';
-import { createSocketServer, configureSocketMiddleware, registerSocketHandlers } from './socket';
-import { createLogger } from './services/logger.service';
+import http from "http";
+import mysql from "mysql2";
+import dotenv from "dotenv";
 
-const logger = createLogger('Server');
+import { config } from "./config";
+
+import { createApp } from "./app/express";
+
+import {
+   createSocketServer,
+   configureSocketMiddleware,
+   registerSocketHandlers,
+} from "./socket";
+
+import { createLogger } from "./services/logger.service";
+
+// Load environment variables
+dotenv.config();
+
+const logger = createLogger("Server");
 
 /**
- * Initialize and start the server
+ * MySQL Database Connection
+ */
+export const db = mysql.createConnection({
+   host: process.env.DB_HOST,
+   user: process.env.DB_USER,
+   password: process.env.DB_PASSWORD,
+   database: process.env.DB_NAME,
+});
+
+/**
+ * Connect MySQL Database
+ */
+db.connect((err) => {
+
+   if (err) {
+
+      logger.error(
+         "❌ MySQL connection failed",
+         err
+      );
+
+   } else {
+
+      logger.info(
+         "✅ MySQL Connected Successfully"
+      );
+
+   }
+});
+
+/**
+ * Bootstrap Application
  */
 async function bootstrap(): Promise<void> {
-  try {
-    // Create Express app
-    const app = createApp();
 
-    // Create HTTP server
-    const server = http.createServer(app);
+   try {
 
-    // Create and configure Socket.IO
-    const io = createSocketServer(server);
-    configureSocketMiddleware(io);
-    registerSocketHandlers(io);
+      /**
+       * Create Express Application
+       */
+      const app = createApp();
 
-    // Start listening
-    const port = config.env.PORT;
-    
-    server.listen(port, () => {
-      logger.info(`🚀 ${config.app.name} server started`, {
-        port,
-        environment: config.env.NODE_ENV,
-        version: config.app.version,
+      /**
+       * Create HTTP Server
+       */
+      const server = http.createServer(app);
+
+      /**
+       * Create Socket.IO Server
+       */
+      const io = createSocketServer(server);
+
+      /**
+       * Configure Socket Middleware
+       */
+      configureSocketMiddleware(io);
+
+      /**
+       * Register Socket Handlers
+       */
+      registerSocketHandlers(io);
+
+      /**
+       * Server Port
+       */
+      const port =
+         config.env.PORT || 3000;
+
+      /**
+       * Start Server
+       */
+      server.listen(port, () => {
+
+         logger.info(
+            `🚀 ${config.app.name} server started`,
+            {
+               port,
+               environment:
+                  config.env.NODE_ENV,
+               version:
+                  config.app.version,
+            }
+         );
+
+         logger.info(
+            `🌐 Server running at: http://localhost:${port}`
+         );
+
       });
-    });
 
-    // Graceful shutdown
-    const gracefulShutdown = async (signal: string): Promise<void> => {
-      logger.info(`${signal} received, starting graceful shutdown...`);
+      /**
+       * Graceful Shutdown
+       */
+      const gracefulShutdown = async (
+         signal: string
+      ): Promise<void> => {
 
-      // Close Socket.IO connections
-      io.close(() => {
-        logger.info('Socket.IO connections closed');
-      });
+         logger.info(
+            `⚠️ ${signal} received, shutting down...`
+         );
 
-      // Close HTTP server
-      server.close(() => {
-        logger.info('HTTP server closed');
-        process.exit(0);
-      });
+         // Close Socket.IO
+         io.close(() => {
 
-      // Force exit after timeout
-      setTimeout(() => {
-        logger.error('Forced shutdown due to timeout');
-        process.exit(1);
-      }, 10000);
-    };
+            logger.info(
+               "✅ Socket.IO connections closed"
+            );
 
-    process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
-    process.on('SIGINT', () => gracefulShutdown('SIGINT'));
+         });
 
-    // Handle uncaught exceptions
-    process.on('uncaughtException', (error) => {
-      logger.error('Uncaught exception', error);
+         // Close HTTP Server
+         server.close(() => {
+
+            logger.info(
+               "✅ HTTP server closed"
+            );
+
+            process.exit(0);
+
+         });
+
+         // Force shutdown timeout
+         setTimeout(() => {
+
+            logger.error(
+               "❌ Forced shutdown due to timeout"
+            );
+
+            process.exit(1);
+
+         }, 10000);
+      };
+
+      /**
+       * Process Events
+       */
+      process.on(
+         "SIGTERM",
+         () => gracefulShutdown("SIGTERM")
+      );
+
+      process.on(
+         "SIGINT",
+         () => gracefulShutdown("SIGINT")
+      );
+
+      /**
+       * Handle Uncaught Exceptions
+       */
+      process.on(
+         "uncaughtException",
+         (error) => {
+
+            logger.error(
+               "❌ Uncaught Exception",
+               error
+            );
+
+            process.exit(1);
+
+         }
+      );
+
+      /**
+       * Handle Promise Rejections
+       */
+      process.on(
+         "unhandledRejection",
+         (reason) => {
+
+            logger.error(
+               "❌ Unhandled Rejection",
+               reason as Error
+            );
+
+            process.exit(1);
+
+         }
+      );
+
+   } catch (error) {
+
+      logger.error(
+         "❌ Failed to start server",
+         error as Error
+      );
+
       process.exit(1);
-    });
 
-    process.on('unhandledRejection', (reason) => {
-      logger.error('Unhandled rejection', reason as Error);
-      process.exit(1);
-    });
-
-  } catch (error) {
-    logger.error('Failed to start server', error as Error);
-    process.exit(1);
-  }
+   }
 }
 
-// Start the server
+/**
+ * Start Application
+ */
 bootstrap();

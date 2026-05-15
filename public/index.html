@@ -4,31 +4,50 @@
       <meta charset="UTF-8" />
       <meta name="viewport" content="width=device-width, initial-scale=1.0" />
       <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+
+      <!-- Favicon -->
       <link
          rel="shortcut icon"
          href="img/icons8-chat-64.png"
          type="image/x-icon"
       />
+
+      <!-- Font Awesome -->
       <link
          rel="stylesheet"
          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/all.min.css"
          integrity="sha256-mmgLkCYLUQbXn0B1SRqzHar6dCnv9oZFPEC1g1cwlkk="
          crossorigin="anonymous"
       />
+
+      <!-- Main CSS -->
       <link rel="stylesheet" href="css/style.css" />
-      <title>Chat Application by Yash</title>
+
+      <!-- Website Title -->
+      <title>XeroxChat | Real-Time Chat App</title>
    </head>
+
    <body>
       <div class="join-container">
+
+         <!-- Header -->
          <header class="join-header">
             <h1 style="color: #f5f6f7">
-               <i class="fas fa-comment-dots"></i> XeroxChat
+               <i class="fas fa-comment-dots"></i>
+               XeroxChat
             </h1>
          </header>
+
+         <!-- Join Form -->
          <main class="join-main">
             <form action="chat.html">
+
+               <!-- Username -->
                <div class="form-control">
-                  <label style="color: #f5f6f7" for="username">Username</label>
+                  <label style="color: #f5f6f7" for="username">
+                     Username
+                  </label>
+
                   <input
                      type="text"
                      name="username"
@@ -37,8 +56,13 @@
                      required
                   />
                </div>
+
+               <!-- Room Selection -->
                <div class="form-control">
-                  <label style="color: #f5f6f7" for="room">Select Room</label>
+                  <label style="color: #f5f6f7" for="room">
+                     Select Room
+                  </label>
+
                   <select name="room" id="room">
                      <option value="Room-1">Room-1</option>
                      <option value="Room-2">Room-2</option>
@@ -47,14 +71,22 @@
                      <option value="Room-5">Room-5</option>
                   </select>
                </div>
-               <button type="submit" class="btn">Join Chat</button>
+
+               <!-- Submit Button -->
+               <button type="submit" class="btn">
+                  Join Chat
+               </button>
+
             </form>
          </main>
+
+         <!-- Footer -->
          <footer style="margin-top: 25px">
             <div style="text-align: center" class="credit">
-               &copy; Yash Vidhate
+               © 2026 Yash Vidhate | XeroxChat
             </div>
          </footer>
+
       </div>
    </body>
 </html>

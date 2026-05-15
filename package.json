@@ -1,8 +1,9 @@
 {
   "name": "xeroxchat",
   "version": "2.0.0",
-  "description": "Production-grade real-time chat application with TypeScript, Express, and Socket.IO",
+  "description": "Real-time chat application built with TypeScript, Express, Socket.IO, and MySQL",
   "main": "dist/main.js",
+
   "scripts": {
     "build": "tsc",
     "start": "node dist/main.js",
@@ -17,24 +18,34 @@
     "test:ui": "vitest --ui",
     "clean": "rm -rf dist"
   },
+
   "keywords": [
     "chat",
     "real-time",
     "socket.io",
     "typescript",
-    "express"
+    "express",
+    "mysql",
+    "websocket"
   ],
-  "author": "Mehedi Islam Ripon",
-  "license": "ISC",
+
+  "author": "Yash Vidhate",
+
+  "license": "MIT",
+
   "engines": {
     "node": ">=18.0.0"
   },
+
   "dependencies": {
+    "dotenv": "^17.4.2",
     "express": "^5.2.1",
     "moment-timezone": "^0.6.0",
+    "mysql2": "^3.22.3",
     "socket.io": "^4.8.3",
     "zod": "^4.3.5"
   },
+
   "devDependencies": {
     "@types/express": "^5.0.6",
     "@types/moment-timezone": "^0.5.13",
