@@ -46,13 +46,13 @@ const PORT =
    process.env["PORT"] ?? 3000;
 
 /**
- * ============================
+ * ==================================
  * AUTHENTICATION APIs
- * ============================
+ * ==================================
  */
 
 /**
- * Register User
+ * REGISTER USER
  */
 app.post(
    "/api/auth/register",
@@ -83,7 +83,10 @@ app.post(
                email,
                hashedPassword
             ],
-            (err) => {
+            (
+               err,
+               result: any
+            ) => {
 
                if (err) {
 
@@ -95,9 +98,19 @@ app.post(
                   });
                }
 
+               console.log(
+                  "✅ New user registered:",
+                  username
+               );
+
                res.json({
+
                   message:
-                     "User registered successfully"
+                     "User registered successfully",
+
+                  userId:
+                     result.insertId
+
                });
 
             }
@@ -117,7 +130,7 @@ app.post(
 );
 
 /**
- * Login User
+ * LOGIN USER
  */
 app.post(
    "/api/auth/login",
@@ -175,7 +188,9 @@ app.post(
                });
             }
 
-            // Generate JWT Token
+            /**
+             * Generate JWT Token
+             */
             const token =
                jwt.sign(
                   {
@@ -187,6 +202,40 @@ app.post(
                      expiresIn: "1d"
                   }
                );
+
+            /**
+             * Save Login History
+             */
+            const loginSql =
+
+               "INSERT INTO login_history (username, email, ip_address) VALUES (?, ?, ?)";
+
+            db.query(
+
+               loginSql,
+
+               [
+                  user.username,
+                  user.email,
+                  req.ip
+               ],
+
+               (err) => {
+
+                  if (err) {
+
+                     console.log(err);
+
+                  } else {
+
+                     console.log(
+                        "✅ Login history saved"
+                     );
+
+                  }
+
+               }
+            );
 
             res.json({
                message:
@@ -200,9 +249,9 @@ app.post(
 );
 
 /**
- * ============================
+ * ==================================
  * SOCKET.IO CONNECTION
- * ============================
+ * ==================================
  */
 io.on("connection", (socket) => {
 
@@ -211,7 +260,7 @@ io.on("connection", (socket) => {
    );
 
    /**
-    * Join Room
+    * JOIN ROOM
     */
    socket.on(
       "joinRoom",
@@ -249,7 +298,7 @@ io.on("connection", (socket) => {
          socket.join(user.room);
 
          /**
-          * Load Previous Messages
+          * LOAD OLD MESSAGES
           */
          const loadSql =
             "SELECT * FROM messages WHERE room = ? ORDER BY created_at ASC";
@@ -288,7 +337,7 @@ io.on("connection", (socket) => {
          );
 
          /**
-          * Welcome User
+          * WELCOME USER
           */
          socket.emit(
             "message",
@@ -299,7 +348,7 @@ io.on("connection", (socket) => {
          );
 
          /**
-          * Broadcast Join
+          * BROADCAST USER JOIN
           */
          socket.broadcast
             .to(user.room)
@@ -312,7 +361,7 @@ io.on("connection", (socket) => {
             );
 
          /**
-          * Update Users
+          * UPDATE ROOM USERS
           */
          io.to(user.room).emit(
             "roomUsers",
@@ -329,7 +378,7 @@ io.on("connection", (socket) => {
    );
 
    /**
-    * Typing Indicator
+    * TYPING INDICATOR
     */
    socket.on(
       "typing",
@@ -344,7 +393,7 @@ io.on("connection", (socket) => {
    );
 
    /**
-    * Chat Message
+    * CHAT MESSAGE
     */
    socket.on(
       "chatMessage",
@@ -360,7 +409,7 @@ io.on("connection", (socket) => {
          }
 
          /**
-          * Save USER Message
+          * SAVE USER MESSAGE
           */
          const userSql =
             "INSERT INTO messages (username, room, text) VALUES (?, ?, ?)";
@@ -381,7 +430,7 @@ io.on("connection", (socket) => {
          );
 
          /**
-          * Broadcast USER Message
+          * SEND USER MESSAGE
           */
          io.to(user.room).emit(
             "message",
@@ -392,7 +441,7 @@ io.on("connection", (socket) => {
          );
 
          /**
-          * Smart ChatBot
+          * SMART CHATBOT
           */
          let botReply =
             "Interesting 😊";
@@ -402,7 +451,8 @@ io.on("connection", (socket) => {
 
          if (
             lowerMsg.includes("hello") ||
-            lowerMsg.includes("hi")
+            lowerMsg.includes("hi") ||
+            lowerMsg.includes("hey")
          ) {
 
             botReply =
@@ -454,8 +504,19 @@ io.on("connection", (socket) => {
 
          }
 
+         else if (
+            lowerMsg.includes(
+               "thank"
+            )
+         ) {
+
+            botReply =
+               "You're welcome 😊";
+
+         }
+
          /**
-          * Send BOT Reply
+          * SEND BOT REPLY
           */
          setTimeout(() => {
 
@@ -468,7 +529,7 @@ io.on("connection", (socket) => {
             );
 
             /**
-             * Save BOT Reply
+             * SAVE BOT REPLY
              */
             const botSql =
                "INSERT INTO messages (username, room, text) VALUES (?, ?, ?)";
@@ -493,7 +554,7 @@ io.on("connection", (socket) => {
    );
 
    /**
-    * Disconnect
+    * USER DISCONNECT
     */
    socket.on(
       "disconnect",
@@ -514,6 +575,9 @@ io.on("connection", (socket) => {
                )
             );
 
+            /**
+             * UPDATE USERS
+             */
             io.to(user.room).emit(
                "roomUsers",
                {
@@ -535,7 +599,7 @@ io.on("connection", (socket) => {
 });
 
 /**
- * Start Server
+ * START SERVER
  */
 server.listen(PORT, () => {
 

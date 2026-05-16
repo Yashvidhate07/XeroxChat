@@ -1,92 +1,237 @@
 <!DOCTYPE html>
 <html lang="en">
-   <head>
-      <meta charset="UTF-8" />
-      <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-      <meta http-equiv="X-UA-Compatible" content="ie=edge" />
 
-      <!-- Favicon -->
-      <link
-         rel="shortcut icon"
-         href="img/icons8-chat-64.png"
-         type="image/x-icon"
-      />
+<head>
 
-      <!-- Font Awesome -->
-      <link
-         rel="stylesheet"
-         href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/all.min.css"
-         integrity="sha256-mmgLkCYLUQbXn0B1SRqzHar6dCnv9oZFPEC1g1cwlkk="
-         crossorigin="anonymous"
-      />
+   <meta charset="UTF-8" />
 
-      <!-- Main CSS -->
-      <link rel="stylesheet" href="css/style.css" />
+   <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0"
+   />
 
-      <!-- Website Title -->
-      <title>XeroxChat | Real-Time Chat App</title>
-   </head>
+   <meta
+      http-equiv="X-UA-Compatible"
+      content="ie=edge"
+   />
 
-   <body>
-      <div class="join-container">
+   <!-- Favicon -->
+   <link
+      rel="shortcut icon"
+      href="img/icons8-chat-64.png"
+      type="image/x-icon"
+   />
 
-         <!-- Header -->
-         <header class="join-header">
-            <h1 style="color: #f5f6f7">
-               <i class="fas fa-comment-dots"></i>
-               XeroxChat
-            </h1>
-         </header>
+   <!-- Font Awesome -->
+   <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/all.min.css"
+      integrity="sha256-mmgLkCYLUQbXn0B1SRqzHar6dCnv9oZFPEC1g1cwlkk="
+      crossorigin="anonymous"
+   />
+
+   <!-- Main CSS -->
+   <link
+      rel="stylesheet"
+      href="css/style.css"
+   />
+
+   <!-- Website Title -->
+   <title>
+      XeroxChat | Real-Time Chat App
+   </title>
+
+</head>
+
+<body>
+
+   <div class="join-container">
+
+      <!-- Header -->
+      <header class="join-header">
+
+         <h1 style="color: #f5f6f7">
+
+            <i class="fas fa-comment-dots"></i>
+
+            XeroxChat
+
+         </h1>
+
+      </header>
+
+      <!-- Main Content -->
+      <main class="join-main">
+
+         <!-- Auth Buttons -->
+         <div
+            style="
+               display:flex;
+               justify-content:center;
+               gap:10px;
+               margin-bottom:25px;
+            "
+         >
+
+            <a
+               href="login.html"
+               class="btn"
+            >
+
+               <i class="fas fa-sign-in-alt"></i>
+
+               Login
+
+            </a>
+
+            <a
+               href="register.html"
+               class="btn"
+            >
+
+               <i class="fas fa-user-plus"></i>
+
+               Register
+
+            </a>
+
+         </div>
 
          <!-- Join Form -->
-         <main class="join-main">
-            <form action="chat.html">
+         <form action="chat.html">
 
-               <!-- Username -->
-               <div class="form-control">
-                  <label style="color: #f5f6f7" for="username">
-                     Username
-                  </label>
+            <!-- Username -->
+            <div class="form-control">
 
-                  <input
-                     type="text"
-                     name="username"
-                     id="username"
-                     placeholder="Enter username..."
-                     required
-                  />
-               </div>
+               <label
+                  style="color:#f5f6f7"
+                  for="username"
+               >
 
-               <!-- Room Selection -->
-               <div class="form-control">
-                  <label style="color: #f5f6f7" for="room">
-                     Select Room
-                  </label>
+                  Username
 
-                  <select name="room" id="room">
-                     <option value="Room-1">Room-1</option>
-                     <option value="Room-2">Room-2</option>
-                     <option value="Room-3">Room-3</option>
-                     <option value="Room-4">Room-4</option>
-                     <option value="Room-5">Room-5</option>
-                  </select>
-               </div>
+               </label>
 
-               <!-- Submit Button -->
-               <button type="submit" class="btn">
-                  Join Chat
-               </button>
+               <input
+                  type="text"
+                  name="username"
+                  id="username"
+                  placeholder="Enter username..."
+                  required
+               />
 
-            </form>
-         </main>
-
-         <!-- Footer -->
-         <footer style="margin-top: 25px">
-            <div style="text-align: center" class="credit">
-               © 2026 Yash Vidhate | XeroxChat
             </div>
-         </footer>
 
-      </div>
-   </body>
+            <!-- Room Selection -->
+            <div class="form-control">
+
+               <label
+                  style="color:#f5f6f7"
+                  for="room"
+               >
+
+                  Select Room
+
+               </label>
+
+               <select
+                  name="room"
+                  id="room"
+               >
+
+                  <option value="Room-1">
+                     Room-1
+                  </option>
+
+                  <option value="Room-2">
+                     Room-2
+                  </option>
+
+                  <option value="Room-3">
+                     Room-3
+                  </option>
+
+                  <option value="Room-4">
+                     Room-4
+                  </option>
+
+                  <option value="Room-5">
+                     Room-5
+                  </option>
+
+               </select>
+
+            </div>
+
+            <!-- Join Button -->
+            <button
+               type="submit"
+               class="btn"
+               style="width:100%"
+            >
+
+               <i class="fas fa-comments"></i>
+
+               Join Chat
+
+            </button>
+
+         </form>
+
+         <!-- Features -->
+         <div
+            style="
+               margin-top:30px;
+               color:#f5f6f7;
+               text-align:center;
+               line-height:2;
+            "
+         >
+
+            <p>
+               🚀 Real-Time Messaging
+            </p>
+
+            <p>
+               🔐 JWT Authentication
+            </p>
+
+            <p>
+               💾 MySQL Database Storage
+            </p>
+
+            <p>
+               ⚡ Socket.IO Communication
+            </p>
+
+            <p>
+               🤖 Smart ChatBot Integration
+            </p>
+
+         </div>
+
+      </main>
+
+      <!-- Footer -->
+      <footer
+         style="
+            margin-top:25px;
+            text-align:center;
+            color:#f5f6f7;
+         "
+      >
+
+         <div class="credit">
+
+            © 2026 Yash Vidhate |
+            XeroxChat
+
+         </div>
+
+      </footer>
+
+   </div>
+
+</body>
+
 </html>

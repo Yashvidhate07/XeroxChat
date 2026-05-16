@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+   <meta charset="UTF-8" />
+
+   <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0"
+   />
+
+   <link
+      rel="stylesheet"
+      href="css/style.css"
+   />
+
+   <title>XeroxChat Login</title>
+
+</head>
+
+<body>
+
+   <div class="join-container">
+
+      <header class="join-header">
+
+         <h1>🔐 XeroxChat Login</h1>
+
+      </header>
+
+      <main class="join-main">
+
+         <form id="loginForm">
+
+            <div class="form-control">
+
+               <label>Email</label>
+
+               <input
+                  type="email"
+                  id="email"
+                  required
+               />
+
+            </div>
+
+            <div class="form-control">
+
+               <label>Password</label>
+
+               <input
+                  type="password"
+                  id="password"
+                  required
+               />
+
+            </div>
+
+            <button
+               type="submit"
+               class="btn"
+            >
+
+               Login
+
+            </button>
+
+         </form>
+
+      </main>
+
+   </div>
+
+   <script>
+
+      document
+         .getElementById(
+            "loginForm"
+         )
+         .addEventListener(
+            "submit",
+            async (e) => {
+
+               e.preventDefault();
+
+               const email =
+                  document.getElementById(
+                     "email"
+                  ).value;
+
+               const password =
+                  document.getElementById(
+                     "password"
+                  ).value;
+
+               const response =
+                  await fetch(
+                     "/api/auth/login",
+                     {
+                        method: "POST",
+
+                        headers: {
+                           "Content-Type":
+                              "application/json",
+                        },
+
+                        body: JSON.stringify({
+                           email,
+                           password,
+                        }),
+                     }
+                  );
+
+               const data =
+                  await response.json();
+
+               if (data.token) {
+
+                  localStorage.setItem(
+                     "token",
+                     data.token
+                  );
+
+                  alert(
+                     "Login Successful 🚀"
+                  );
+
+                  window.location.href =
+                     "/";
+
+               } else {
+
+                  alert(data.message);
+
+               }
+
+            }
+         );
+
+   </script>
+
+</body>
+
+</html>
