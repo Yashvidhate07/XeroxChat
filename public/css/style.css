@@ -261,3 +261,14 @@ input:focus {
       min-height: 65vh;
    }
 }
+.typing-status {
+
+   color: white;
+
+   font-size: 14px;
+
+   margin-left: 20px;
+
+   margin-top: 5px;
+
+}

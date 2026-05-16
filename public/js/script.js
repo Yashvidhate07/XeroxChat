@@ -1,2 +1,198 @@
-(()=>{"use strict";const e=document.getElementById("chat-form"),n=document.querySelector(".chat-messages"),t=document.getElementById("room-name"),s=document.getElementById("users"),o=Qs.parse(location.search,{ignoreQueryPrefix:!0}),r=o.username,a=o.room,m=io();m.on("usernameError",e=>{alert(e),window.location.href="/"}),m.emit("joinRoom",{username:r,room:a}),m.on("roomUsers",e=>{var n,o;n=e.room,t.innerHTML=n,o=e.users,s.innerHTML=`\n    ${o.map(e=>`<li>${e.username}</li>`).join("")}\n  `}),m.on("message",e=>{!function(e){const t=document.createElement("div");t.classList.add("message"),t.innerHTML=`<p class="meta">${e.username} <span>${e.time}</span></p>\n   <p class="text">\n      ${e.text}\n   </p>`,n.appendChild(t)}(e),n.scrollTop=n.scrollHeight}),e.addEventListener("submit",e=>{e.preventDefault();const n=e.target.elements.namedItem("msg"),t=n.value;m.emit("chatMessage",t),n.value="",n.focus()})})();
-//# sourceMappingURL=script.js.map
+const chatForm = document.getElementById("chat-form");
+
+const chatMessages =
+   document.querySelector(".chat-messages");
+
+const roomName =
+   document.getElementById("room-name");
+
+const userList =
+   document.getElementById("users");
+
+/**
+ * Get username and room from URL
+ */
+const {
+   username,
+   room,
+} = Qs.parse(location.search, {
+   ignoreQueryPrefix: true,
+});
+
+/**
+ * Socket Connection
+ */
+const socket = io();
+
+/**
+ * Typing Status Div
+ */
+const typingDiv =
+   document.createElement("div");
+
+typingDiv.classList.add(
+   "typing-status"
+);
+
+document
+   .querySelector(".chat-form-container")
+   .appendChild(typingDiv);
+
+/**
+ * Username Error
+ */
+socket.on("usernameError", (msg) => {
+
+   alert(msg);
+
+   window.location.href = "/";
+
+});
+
+/**
+ * Join Chat Room
+ */
+socket.emit("joinRoom", {
+   username,
+   room,
+});
+
+/**
+ * Get Room & Users
+ */
+socket.on("roomUsers", ({
+   room,
+   users,
+}) => {
+
+   outputRoomName(room);
+
+   outputUsers(users);
+
+});
+
+/**
+ * Display Messages
+ */
+socket.on("message", (message) => {
+
+   outputMessage(message);
+
+   // Auto scroll
+   chatMessages.scrollTop =
+      chatMessages.scrollHeight;
+
+});
+
+/**
+ * Typing Event Listen
+ */
+socket.on("typing", (user) => {
+
+   typingDiv.innerText =
+      `${user} is typing...`;
+
+   setTimeout(() => {
+
+      typingDiv.innerText = "";
+
+   }, 2000);
+
+});
+
+/**
+ * Message Submit
+ */
+chatForm.addEventListener(
+   "submit",
+   (e) => {
+
+      e.preventDefault();
+
+      const msgInput =
+         e.target.elements.msg;
+
+      const msg =
+         msgInput.value;
+
+      /**
+       * Send Message
+       */
+      socket.emit(
+         "chatMessage",
+         msg
+      );
+
+      // Clear input
+      msgInput.value = "";
+
+      msgInput.focus();
+
+   }
+);
+
+/**
+ * Typing Event Emit
+ */
+document
+   .getElementById("msg")
+   .addEventListener(
+      "input",
+      () => {
+
+         socket.emit(
+            "typing",
+            username
+         );
+
+      }
+   );
+
+/**
+ * Output Message
+ */
+function outputMessage(message) {
+
+   const div =
+      document.createElement("div");
+
+   div.classList.add("message");
+
+   div.innerHTML = `
+      <p class="meta">
+         ${message.username}
+         <span>${message.time}</span>
+      </p>
+
+      <p class="text">
+         ${message.text}
+      </p>
+   `;
+
+   chatMessages.appendChild(div);
+
+}
+
+/**
+ * Output Room Name
+ */
+function outputRoomName(room) {
+
+   roomName.innerText = room;
+
+}
+
+/**
+ * Output Users
+ */
+function outputUsers(users) {
+
+   userList.innerHTML = `
+      ${users.map(user => `
+         <li>
+            🟢 ${user.username}
+         </li>
+      `).join("")}
+   `;
+
+}

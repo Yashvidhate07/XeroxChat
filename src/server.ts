@@ -2,163 +2,417 @@ import express from "express";
 import http from "http";
 import { Server as SocketIOServer } from "socket.io";
 import path from "path";
+
 import db from "./config/db";
+
 import formatMessage from "./utils/messages";
+
 import {
    userJoin,
    getCurrentUser,
    userLeave,
    getRoomUsers,
 } from "./utils/users";
+
 import { JoinRoomData } from "./types/index";
 
-// Initialize express app
+// Initialize Express
 const app = express();
-const server = http.createServer(app);
-const io = new SocketIOServer(server);
 
-// Serve static files
-app.use(express.static(path.join(__dirname, "../public")));
+const server =
+   http.createServer(app);
 
-const BOT_NAME = "XeroxChat Bot";
-const PORT = process.env["PORT"] ?? 3000;
+const io =
+   new SocketIOServer(server);
+
+// Static Files
+app.use(
+   express.static(
+      path.join(
+         __dirname,
+         "../public"
+      )
+   )
+);
+
+const BOT_NAME =
+   "XeroxChat Bot";
+
+const PORT =
+   process.env["PORT"] ?? 3000;
 
 /**
- * Socket.IO connection handler
+ * Socket.IO Connection
  */
 io.on("connection", (socket) => {
 
+   console.log(
+      "🟢 New user connected"
+   );
+
    /**
-    * Handle user joining a room
+    * Join Room
     */
-   socket.on("joinRoom", (data: JoinRoomData) => {
+   socket.on(
+      "joinRoom",
+      (data: JoinRoomData) => {
 
-      const { username, room } = data;
+         const {
+            username,
+            room
+         } = data;
 
-      const { error, user } = userJoin(
-         socket.id,
-         username,
-         room
-      );
+         const {
+            error,
+            user
+         } = userJoin(
+            socket.id,
+            username,
+            room
+         );
 
-      if (error) {
-         socket.emit("usernameError", error);
-         return;
-      }
+         if (error) {
 
-      if (!user) {
-         return;
-      }
+            socket.emit(
+               "usernameError",
+               error
+            );
 
-      socket.join(user.room);
-
-      // Load old messages from MySQL
-      const sql =
-         "SELECT * FROM messages WHERE room = ? ORDER BY created_at ASC";
-
-      db.query(sql, [user.room], (err, results: any) => {
-
-         if (err) {
-            console.log(err);
-         } else {
-
-            results.forEach((msg: any) => {
-
-               socket.emit(
-                  "message",
-                  formatMessage(msg.username, msg.text)
-               );
-
-            });
+            return;
          }
-      });
 
-      // Welcome current user
-      socket.emit(
-         "message",
-         formatMessage(BOT_NAME, "Welcome to XeroxChat!")
-      );
+         if (!user) {
+            return;
+         }
 
-      // Broadcast when user joins
-      socket.broadcast
-         .to(user.room)
-         .emit(
+         // Join Room
+         socket.join(user.room);
+
+         /**
+          * Load Old Messages
+          */
+         const loadSql =
+            "SELECT * FROM messages WHERE room = ? ORDER BY created_at ASC";
+
+         db.query(
+            loadSql,
+            [user.room],
+            (
+               err,
+               results: any
+            ) => {
+
+               if (err) {
+
+                  console.log(err);
+
+               } else {
+
+                  results.forEach(
+                     (
+                        msg: any
+                     ) => {
+
+                        socket.emit(
+                           "message",
+                           formatMessage(
+                              msg.username,
+                              msg.text
+                           )
+                        );
+
+                     }
+                  );
+               }
+            }
+         );
+
+         /**
+          * Welcome User
+          */
+         socket.emit(
             "message",
             formatMessage(
                BOT_NAME,
-               `${user.username} has joined the chat!`
+               "Welcome to XeroxChat 🚀"
             )
          );
 
-      // Send room users info
-      io.to(user.room).emit("roomUsers", {
-         room: user.room,
-         users: getRoomUsers(user.room),
-      });
-   });
+         /**
+          * Broadcast Join
+          */
+         socket.broadcast
+            .to(user.room)
+            .emit(
+               "message",
+               formatMessage(
+                  BOT_NAME,
+                  `${user.username} joined the chat`
+               )
+            );
 
-   /**
-    * Handle chat messages
-    */
-   socket.on("chatMessage", (msg: string) => {
-
-      const user = getCurrentUser(socket.id);
-
-      if (!user) {
-         return;
-      }
-
-      // Save message into MySQL
-      const sql =
-         "INSERT INTO messages (username, room, text) VALUES (?, ?, ?)";
-
-      db.query(
-         sql,
-         [user.username, user.room, msg],
-         (err) => {
-
-            if (err) {
-               console.log(err);
+         /**
+          * Room Users
+          */
+         io.to(user.room).emit(
+            "roomUsers",
+            {
+               room:
+                  user.room,
+               users:
+                  getRoomUsers(
+                     user.room
+                  ),
             }
-         }
-      );
-
-      // Send message to room
-      io.to(user.room).emit(
-         "message",
-         formatMessage(user.username, msg)
-      );
-   });
+         );
+      }
+   );
 
    /**
-    * Handle disconnect
+    * Chat Messages
     */
-   socket.on("disconnect", () => {
+   socket.on(
+      "chatMessage",
+      (msg: string) => {
 
-      const user = userLeave(socket.id);
+         const user =
+            getCurrentUser(
+               socket.id
+            );
 
-      if (user) {
+         if (!user) {
+            return;
+         }
 
+         /**
+          * Save USER Message
+          */
+         const userSql =
+            "INSERT INTO messages (username, room, text) VALUES (?, ?, ?)";
+
+         db.query(
+            userSql,
+            [
+               user.username,
+               user.room,
+               msg
+            ],
+            (err) => {
+
+               if (err) {
+                  console.log(err);
+               }
+            }
+         );
+
+         /**
+          * Broadcast USER Message
+          */
          io.to(user.room).emit(
             "message",
             formatMessage(
-               BOT_NAME,
-               `${user.username} has left the chat!`
+               user.username,
+               msg
             )
          );
 
-         // Update room users
-         io.to(user.room).emit("roomUsers", {
-            room: user.room,
-            users: getRoomUsers(user.room),
-         });
+         /**
+          * SMART CHATBOT
+          */
+
+         let botReply =
+            "Interesting 😊";
+
+         const lowerMsg =
+            msg.toLowerCase();
+
+         // Greetings
+         if (
+            lowerMsg.includes("hello") ||
+            lowerMsg.includes("hi") ||
+            lowerMsg.includes("hey")
+         ) {
+
+            botReply =
+               "Hello 👋 Welcome to XeroxChat!";
+
+         }
+
+         // How are you
+         else if (
+            lowerMsg.includes(
+               "how are you"
+            )
+         ) {
+
+            botReply =
+               "I'm doing great 🚀";
+
+         }
+
+         // Project
+         else if (
+            lowerMsg.includes(
+               "project"
+            )
+         ) {
+
+            botReply =
+               "This project uses TypeScript, Socket.IO, Express, and MySQL.";
+
+         }
+
+         // Database
+         else if (
+            lowerMsg.includes(
+               "database"
+            )
+         ) {
+
+            botReply =
+               "Messages are stored permanently using MySQL database.";
+
+         }
+
+         // Thanks
+         else if (
+            lowerMsg.includes(
+               "thank"
+            )
+         ) {
+
+            botReply =
+               "You're welcome 😊";
+
+         }
+
+         // Bye
+         else if (
+            lowerMsg.includes(
+               "bye"
+            )
+         ) {
+
+            botReply =
+               "Goodbye 👋 Have a nice day!";
+
+         }
+
+         // Time
+         else if (
+            lowerMsg.includes(
+               "time"
+            )
+         ) {
+
+            botReply =
+               `Current server time is ${new Date().toLocaleTimeString()}`;
+
+         }
+
+         /**
+          * Send BOT Reply
+          */
+         setTimeout(() => {
+
+            io.to(user.room).emit(
+               "message",
+               formatMessage(
+                  BOT_NAME,
+                  botReply
+               )
+            );
+
+            /**
+             * Save BOT Reply
+             */
+            const botSql =
+               "INSERT INTO messages (username, room, text) VALUES (?, ?, ?)";
+
+            db.query(
+               botSql,
+               [
+                  BOT_NAME,
+                  user.room,
+                  botReply
+               ],
+               (err) => {
+
+                  if (err) {
+                     console.log(err);
+                  }
+               }
+            );
+
+         }, 1000);
       }
-   });
+   );
+
+   /**
+    * Typing Indicator
+    */
+   socket.on(
+      "typing",
+      (username) => {
+
+         socket.broadcast.emit(
+            "typing",
+            username
+         );
+
+      }
+   );
+
+   /**
+    * Disconnect
+    */
+   socket.on(
+      "disconnect",
+      () => {
+
+         const user =
+            userLeave(
+               socket.id
+            );
+
+         if (user) {
+
+            io.to(user.room).emit(
+               "message",
+               formatMessage(
+                  BOT_NAME,
+                  `${user.username} left the chat`
+               )
+            );
+
+            // Update Users
+            io.to(user.room).emit(
+               "roomUsers",
+               {
+                  room:
+                     user.room,
+                  users:
+                     getRoomUsers(
+                        user.room
+                     ),
+               }
+            );
+         }
+
+         console.log(
+            "🔴 User disconnected"
+         );
+      }
+   );
 });
 
 /**
- * Start server
+ * Start Server
  */
 server.listen(PORT, () => {
-   console.log(`🎯 Server is running on PORT: ${PORT}`);
+
+   console.log(
+      `🚀 XeroxChat server running on PORT ${PORT}`
+   );
+
 });
