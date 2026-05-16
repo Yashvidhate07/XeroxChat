@@ -3,7 +3,6 @@
   "version": "2.0.0",
   "description": "Real-time chat application built with TypeScript, Express, Socket.IO, and MySQL",
   "main": "dist/main.js",
-
   "scripts": {
     "build": "tsc",
     "start": "node dist/main.js",
@@ -18,7 +17,6 @@
     "test:ui": "vitest --ui",
     "clean": "rm -rf dist"
   },
-
   "keywords": [
     "chat",
     "real-time",
@@ -28,26 +26,25 @@
     "mysql",
     "websocket"
   ],
-
   "author": "Yash Vidhate",
-
   "license": "MIT",
-
   "engines": {
     "node": ">=18.0.0"
   },
-
   "dependencies": {
+    "bcryptjs": "^3.0.3",
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
+    "jsonwebtoken": "^9.0.3",
     "moment-timezone": "^0.6.0",
     "mysql2": "^3.22.3",
     "socket.io": "^4.8.3",
     "zod": "^4.3.5"
   },
-
   "devDependencies": {
+    "@types/bcryptjs": "^2.4.6",
     "@types/express": "^5.0.6",
+    "@types/jsonwebtoken": "^9.0.10",
     "@types/moment-timezone": "^0.5.13",
     "@types/node": "^25.7.0",
     "@vitest/coverage-v8": "^2.1.9",

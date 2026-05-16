@@ -2,6 +2,8 @@ import express from "express";
 import http from "http";
 import { Server as SocketIOServer } from "socket.io";
 import path from "path";
+import bcrypt from "bcryptjs";
+import jwt from "jsonwebtoken";
 
 import db from "./config/db";
 
@@ -25,7 +27,9 @@ const server =
 const io =
    new SocketIOServer(server);
 
-// Static Files
+// Middleware
+app.use(express.json());
+
 app.use(
    express.static(
       path.join(
@@ -42,7 +46,163 @@ const PORT =
    process.env["PORT"] ?? 3000;
 
 /**
- * Socket.IO Connection
+ * ============================
+ * AUTHENTICATION APIs
+ * ============================
+ */
+
+/**
+ * Register User
+ */
+app.post(
+   "/api/auth/register",
+   async (req, res) => {
+
+      const {
+         username,
+         email,
+         password
+      } = req.body;
+
+      try {
+
+         // Encrypt password
+         const hashedPassword =
+            await bcrypt.hash(
+               password,
+               10
+            );
+
+         const sql =
+            "INSERT INTO users (username, email, password) VALUES (?, ?, ?)";
+
+         db.query(
+            sql,
+            [
+               username,
+               email,
+               hashedPassword
+            ],
+            (err) => {
+
+               if (err) {
+
+                  console.log(err);
+
+                  return res.status(500).json({
+                     message:
+                        "Registration failed"
+                  });
+               }
+
+               res.json({
+                  message:
+                     "User registered successfully"
+               });
+
+            }
+         );
+
+      } catch (error) {
+
+         console.log(error);
+
+         res.status(500).json({
+            message:
+               "Server error"
+         });
+
+      }
+   }
+);
+
+/**
+ * Login User
+ */
+app.post(
+   "/api/auth/login",
+   (req, res) => {
+
+      const {
+         email,
+         password
+      } = req.body;
+
+      const sql =
+         "SELECT * FROM users WHERE email = ?";
+
+      db.query(
+         sql,
+         [email],
+         async (
+            err,
+            results: any
+         ) => {
+
+            if (err) {
+
+               return res.status(500).json({
+                  message:
+                     "Server error"
+               });
+            }
+
+            if (
+               results.length === 0
+            ) {
+
+               return res.status(400).json({
+                  message:
+                     "User not found"
+               });
+            }
+
+            const user =
+               results[0];
+
+            // Compare Password
+            const isMatch =
+               await bcrypt.compare(
+                  password,
+                  user.password
+               );
+
+            if (!isMatch) {
+
+               return res.status(400).json({
+                  message:
+                     "Invalid password"
+               });
+            }
+
+            // Generate JWT Token
+            const token =
+               jwt.sign(
+                  {
+                     id: user.id,
+                     email: user.email
+                  },
+                  "secretkey",
+                  {
+                     expiresIn: "1d"
+                  }
+               );
+
+            res.json({
+               message:
+                  "Login successful",
+               token
+            });
+
+         }
+      );
+   }
+);
+
+/**
+ * ============================
+ * SOCKET.IO CONNECTION
+ * ============================
  */
 io.on("connection", (socket) => {
 
@@ -89,7 +249,7 @@ io.on("connection", (socket) => {
          socket.join(user.room);
 
          /**
-          * Load Old Messages
+          * Load Previous Messages
           */
          const loadSql =
             "SELECT * FROM messages WHERE room = ? ORDER BY created_at ASC";
@@ -152,7 +312,7 @@ io.on("connection", (socket) => {
             );
 
          /**
-          * Room Users
+          * Update Users
           */
          io.to(user.room).emit(
             "roomUsers",
@@ -169,7 +329,22 @@ io.on("connection", (socket) => {
    );
 
    /**
-    * Chat Messages
+    * Typing Indicator
+    */
+   socket.on(
+      "typing",
+      (username) => {
+
+         socket.broadcast.emit(
+            "typing",
+            username
+         );
+
+      }
+   );
+
+   /**
+    * Chat Message
     */
    socket.on(
       "chatMessage",
@@ -217,20 +392,17 @@ io.on("connection", (socket) => {
          );
 
          /**
-          * SMART CHATBOT
+          * Smart ChatBot
           */
-
          let botReply =
             "Interesting 😊";
 
          const lowerMsg =
             msg.toLowerCase();
 
-         // Greetings
          if (
             lowerMsg.includes("hello") ||
-            lowerMsg.includes("hi") ||
-            lowerMsg.includes("hey")
+            lowerMsg.includes("hi")
          ) {
 
             botReply =
@@ -238,7 +410,6 @@ io.on("connection", (socket) => {
 
          }
 
-         // How are you
          else if (
             lowerMsg.includes(
                "how are you"
@@ -250,7 +421,6 @@ io.on("connection", (socket) => {
 
          }
 
-         // Project
          else if (
             lowerMsg.includes(
                "project"
@@ -258,11 +428,10 @@ io.on("connection", (socket) => {
          ) {
 
             botReply =
-               "This project uses TypeScript, Socket.IO, Express, and MySQL.";
+               "This project uses TypeScript, Express, Socket.IO, and MySQL.";
 
          }
 
-         // Database
          else if (
             lowerMsg.includes(
                "database"
@@ -274,19 +443,6 @@ io.on("connection", (socket) => {
 
          }
 
-         // Thanks
-         else if (
-            lowerMsg.includes(
-               "thank"
-            )
-         ) {
-
-            botReply =
-               "You're welcome 😊";
-
-         }
-
-         // Bye
          else if (
             lowerMsg.includes(
                "bye"
@@ -295,18 +451,6 @@ io.on("connection", (socket) => {
 
             botReply =
                "Goodbye 👋 Have a nice day!";
-
-         }
-
-         // Time
-         else if (
-            lowerMsg.includes(
-               "time"
-            )
-         ) {
-
-            botReply =
-               `Current server time is ${new Date().toLocaleTimeString()}`;
 
          }
 
@@ -349,21 +493,6 @@ io.on("connection", (socket) => {
    );
 
    /**
-    * Typing Indicator
-    */
-   socket.on(
-      "typing",
-      (username) => {
-
-         socket.broadcast.emit(
-            "typing",
-            username
-         );
-
-      }
-   );
-
-   /**
     * Disconnect
     */
    socket.on(
@@ -385,7 +514,6 @@ io.on("connection", (socket) => {
                )
             );
 
-            // Update Users
             io.to(user.room).emit(
                "roomUsers",
                {
