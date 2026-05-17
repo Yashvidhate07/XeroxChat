@@ -10,133 +10,391 @@
       content="width=device-width, initial-scale=1.0"
    />
 
+   <title>Login | XeroxChat</title>
+
+   <!-- Font Awesome -->
    <link
       rel="stylesheet"
-      href="css/style.css"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
    />
 
-   <title>XeroxChat Login</title>
+   <style>
+
+      * {
+
+         margin: 0;
+         padding: 0;
+         box-sizing: border-box;
+         font-family: Arial, Helvetica, sans-serif;
+
+      }
+
+      body {
+
+         height: 100vh;
+
+         display: flex;
+
+         justify-content: center;
+
+         align-items: center;
+
+         background: linear-gradient(
+            135deg,
+            #141e30,
+            #243b55
+         );
+
+      }
+
+      .container {
+
+         width: 420px;
+
+         background: rgba(255,255,255,0.08);
+
+         backdrop-filter: blur(10px);
+
+         padding: 40px;
+
+         border-radius: 20px;
+
+         box-shadow: 0px 0px 25px rgba(0,0,0,0.4);
+
+      }
+
+      .logo {
+
+         text-align: center;
+
+         margin-bottom: 30px;
+
+      }
+
+      .logo h1 {
+
+         color: white;
+
+         font-size: 40px;
+
+      }
+
+      .logo p {
+
+         color: #d1d5db;
+
+         margin-top: 10px;
+
+      }
+
+      .input-box {
+
+         margin-bottom: 20px;
+
+      }
+
+      .input-box label {
+
+         display: block;
+
+         color: white;
+
+         margin-bottom: 8px;
+
+      }
+
+      .input-box input {
+
+         width: 100%;
+
+         padding: 14px;
+
+         border: none;
+
+         border-radius: 10px;
+
+         outline: none;
+
+         background: #dbeafe;
+
+         font-size: 16px;
+
+      }
+
+      .btn {
+
+         width: 100%;
+
+         padding: 14px;
+
+         border: none;
+
+         border-radius: 12px;
+
+         background: #60a5fa;
+
+         color: white;
+
+         font-size: 18px;
+
+         font-weight: bold;
+
+         cursor: pointer;
+
+         transition: 0.3s;
+
+      }
+
+      .btn:hover {
+
+         background: #3b82f6;
+
+         transform: scale(1.02);
+
+      }
+
+      .bottom {
+
+         text-align: center;
+
+         margin-top: 20px;
+
+         color: white;
+
+      }
+
+      .bottom a {
+
+         color: #93c5fd;
+
+         text-decoration: none;
+
+      }
+
+      .features {
+
+         margin-top: 25px;
+
+      }
+
+      .feature {
+
+         color: white;
+
+         margin-bottom: 12px;
+
+         display: flex;
+
+         align-items: center;
+
+         gap: 10px;
+
+      }
+
+      .feature i {
+
+         color: #60a5fa;
+
+      }
+
+   </style>
 
 </head>
 
 <body>
 
-   <div class="join-container">
+   <div class="container">
 
-      <header class="join-header">
+      <!-- LOGO -->
+      <div class="logo">
 
-         <h1>🔐 XeroxChat Login</h1>
+         <h1>
 
-      </header>
+            <i class="fas fa-comments"></i>
 
-      <main class="join-main">
+            XeroxChat
 
-         <form id="loginForm">
+         </h1>
 
-            <div class="form-control">
+         <p>
+            Secure User Login
+         </p>
 
-               <label>Email</label>
+      </div>
 
-               <input
-                  type="email"
-                  id="email"
-                  required
-               />
+      <!-- LOGIN FORM -->
+      <form id="loginForm">
 
-            </div>
+         <div class="input-box">
 
-            <div class="form-control">
+            <label>
+               Email
+            </label>
 
-               <label>Password</label>
+            <input
+               type="email"
+               id="email"
+               placeholder="Enter Email"
+               required
+            />
 
-               <input
-                  type="password"
-                  id="password"
-                  required
-               />
+         </div>
 
-            </div>
+         <div class="input-box">
 
-            <button
-               type="submit"
-               class="btn"
-            >
+            <label>
+               Password
+            </label>
 
-               Login
+            <input
+               type="password"
+               id="password"
+               placeholder="Enter Password"
+               required
+            />
 
-            </button>
+         </div>
 
-         </form>
+         <button
+            type="submit"
+            class="btn"
+         >
 
-      </main>
+            <i class="fas fa-right-to-bracket"></i>
+
+            Login
+
+         </button>
+
+      </form>
+
+      <!-- FEATURES -->
+      <div class="features">
+
+         <div class="feature">
+
+            <i class="fas fa-shield-halved"></i>
+
+            Secure JWT Authentication
+
+         </div>
+
+         <div class="feature">
+
+            <i class="fas fa-lock"></i>
+
+            Password Encryption with bcrypt
+
+         </div>
+
+         <div class="feature">
+
+            <i class="fas fa-database"></i>
+
+            MySQL Login History Storage
+
+         </div>
+
+      </div>
+
+      <!-- REGISTER LINK -->
+      <div class="bottom">
+
+         Don't have account?
+
+         <a href="register.html">
+
+            Register
+
+         </a>
+
+      </div>
 
    </div>
 
+   <!-- SCRIPT -->
    <script>
 
       document
-         .getElementById(
-            "loginForm"
-         )
-         .addEventListener(
-            "submit",
-            async (e) => {
+      .getElementById("loginForm")
 
-               e.preventDefault();
+      .addEventListener(
 
-               const email =
-                  document.getElementById(
-                     "email"
-                  ).value;
+         "submit",
 
-               const password =
-                  document.getElementById(
-                     "password"
-                  ).value;
+         async (e) => {
+
+            e.preventDefault();
+
+            const email =
+               document.getElementById("email").value;
+
+            const password =
+               document.getElementById("password").value;
+
+            try {
 
                const response =
+
                   await fetch(
+
                      "/api/auth/login",
+
                      {
+
                         method: "POST",
 
                         headers: {
+
                            "Content-Type":
-                              "application/json",
+                           "application/json"
+
                         },
 
                         body: JSON.stringify({
+
                            email,
-                           password,
-                        }),
+                           password
+
+                        })
+
                      }
+
                   );
 
                const data =
                   await response.json();
 
+               alert(data.message);
+
+               console.log(data);
+
                if (data.token) {
 
                   localStorage.setItem(
-                     "token",
-                     data.token
-                  );
 
-                  alert(
-                     "Login Successful 🚀"
+                     "token",
+
+                     data.token
+
                   );
 
                   window.location.href =
                      "/";
 
-               } else {
-
-                  alert(data.message);
-
                }
 
+            } catch (error) {
+
+               console.log(error);
+
+               alert("Login failed");
+
             }
-         );
+
+         }
+
+      );
 
    </script>
 

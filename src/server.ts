@@ -18,7 +18,10 @@ import {
 
 import { JoinRoomData } from "./types/index";
 
-// Initialize Express
+// =====================================
+// INITIALIZE APP
+// =====================================
+
 const app = express();
 
 const server =
@@ -27,8 +30,15 @@ const server =
 const io =
    new SocketIOServer(server);
 
-// Middleware
+// =====================================
+// MIDDLEWARE
+// =====================================
+
 app.use(express.json());
+
+app.use(express.urlencoded({
+   extended: true
+}));
 
 app.use(
    express.static(
@@ -39,53 +49,82 @@ app.use(
    )
 );
 
+// =====================================
+// CONSTANTS
+// =====================================
+
 const BOT_NAME =
    "XeroxChat Bot";
 
 const PORT =
-   process.env["PORT"] ?? 3000;
+   process.env.PORT || 3000;
 
-/**
- * ==================================
- * AUTHENTICATION APIs
- * ==================================
- */
+// =====================================
+// HOME ROUTE
+// =====================================
 
-/**
- * REGISTER USER
- */
+app.get("/", (req, res) => {
+
+   res.sendFile(
+      path.join(
+         __dirname,
+         "../public/index.html"
+      )
+   );
+
+});
+
+// =====================================
+// REGISTER API
+// =====================================
+
 app.post(
    "/api/auth/register",
+
    async (req, res) => {
 
-      const {
-         username,
-         email,
-         password
-      } = req.body;
+      console.log(
+         "📥 Register Request Received"
+      );
 
       try {
 
-         // Encrypt password
-         const hashedPassword =
-            await bcrypt.hash(
-               password,
-               10
-            );
+         const {
+            username,
+            email,
+            password
+         } = req.body;
 
-         const sql =
-            "INSERT INTO users (username, email, password) VALUES (?, ?, ?)";
+         // Validation
+         if (
+            !username ||
+            !email ||
+            !password
+         ) {
+
+            return res.status(400).json({
+
+               message:
+                  "All fields are required"
+
+            });
+
+         }
+
+         // Check existing user
+         const checkSql =
+
+            "SELECT * FROM users WHERE email = ?";
 
          db.query(
-            sql,
-            [
-               username,
-               email,
-               hashedPassword
-            ],
-            (
+
+            checkSql,
+
+            [email],
+
+            async (
                err,
-               result: any
+               results: any
             ) => {
 
                if (err) {
@@ -93,23 +132,276 @@ app.post(
                   console.log(err);
 
                   return res.status(500).json({
+
                      message:
-                        "Registration failed"
+                        "Database error"
+
                   });
+
                }
 
-               console.log(
-                  "✅ New user registered:",
-                  username
+               if (
+                  results.length > 0
+               ) {
+
+                  return res.status(400).json({
+
+                     message:
+                        "User already exists"
+
+                  });
+
+               }
+
+               // Encrypt password
+               const hashedPassword =
+
+                  await bcrypt.hash(
+                     password,
+                     10
+                  );
+
+               // Insert user
+               const insertSql =
+
+                  "INSERT INTO users (username, email, password) VALUES (?, ?, ?)";
+
+               db.query(
+
+                  insertSql,
+
+                  [
+                     username,
+                     email,
+                     hashedPassword
+                  ],
+
+                  (
+                     err,
+                     result: any
+                  ) => {
+
+                     if (err) {
+
+                        console.log(err);
+
+                        return res.status(500).json({
+
+                           message:
+                              "Registration failed"
+
+                        });
+
+                     }
+
+                     console.log(
+
+                        "✅ New User Registered:",
+                        username
+
+                     );
+
+                     return res.json({
+
+                        success: true,
+
+                        message:
+                           "User registered successfully",
+
+                        userId:
+                           result.insertId
+
+                     });
+
+                  }
                );
 
-               res.json({
+            }
+         );
+
+      } catch (error) {
+
+         console.log(error);
+
+         return res.status(500).json({
+
+            message:
+               "Server Error"
+
+         });
+
+      }
+
+   }
+);
+
+// =====================================
+// LOGIN API
+// =====================================
+
+app.post(
+   "/api/auth/login",
+
+   async (req, res) => {
+
+      console.log(
+         "🔐 Login Request Received"
+      );
+
+      try {
+
+         const {
+            email,
+            password
+         } = req.body;
+
+         if (
+            !email ||
+            !password
+         ) {
+
+            return res.status(400).json({
+
+               message:
+                  "Email and password required"
+
+            });
+
+         }
+
+         const sql =
+
+            "SELECT * FROM users WHERE email = ?";
+
+         db.query(
+
+            sql,
+
+            [email],
+
+            async (
+               err,
+               results: any
+            ) => {
+
+               if (err) {
+
+                  console.log(err);
+
+                  return res.status(500).json({
+
+                     message:
+                        "Database Error"
+
+                  });
+
+               }
+
+               if (
+                  results.length === 0
+               ) {
+
+                  return res.status(400).json({
+
+                     message:
+                        "User not found"
+
+                  });
+
+               }
+
+               const user =
+                  results[0];
+
+               // Compare password
+               const isMatch =
+
+                  await bcrypt.compare(
+                     password,
+                     user.password
+                  );
+
+               if (!isMatch) {
+
+                  return res.status(400).json({
+
+                     message:
+                        "Invalid password"
+
+                  });
+
+               }
+
+               // Generate JWT
+               const token =
+
+                  jwt.sign(
+
+                     {
+                        id: user.id,
+                        email: user.email
+                     },
+
+                     "secretkey",
+
+                     {
+                        expiresIn: "1d"
+                     }
+
+                  );
+
+               // Save login history
+               const loginSql =
+
+                  "INSERT INTO login_history (username, email, ip_address) VALUES (?, ?, ?)";
+
+               db.query(
+
+                  loginSql,
+
+                  [
+                     user.username,
+                     user.email,
+                     req.ip
+                  ],
+
+                  (err) => {
+
+                     if (err) {
+
+                        console.log(err);
+
+                     } else {
+
+                        console.log(
+
+                           "✅ Login History Saved"
+
+                        );
+
+                     }
+
+                  }
+               );
+
+               console.log(
+
+                  "✅ User Logged In:",
+                  user.username
+
+               );
+
+               return res.json({
+
+                  success: true,
 
                   message:
-                     "User registered successfully",
+                     "Login successful",
 
-                  userId:
-                     result.insertId
+                  token,
+
+                  username:
+                     user.username
 
                });
 
@@ -120,150 +412,35 @@ app.post(
 
          console.log(error);
 
-         res.status(500).json({
+         return res.status(500).json({
+
             message:
-               "Server error"
+               "Server Error"
+
          });
 
       }
+
    }
 );
 
-/**
- * LOGIN USER
- */
-app.post(
-   "/api/auth/login",
-   (req, res) => {
+// =====================================
+// SOCKET.IO
+// =====================================
 
-      const {
-         email,
-         password
-      } = req.body;
-
-      const sql =
-         "SELECT * FROM users WHERE email = ?";
-
-      db.query(
-         sql,
-         [email],
-         async (
-            err,
-            results: any
-         ) => {
-
-            if (err) {
-
-               return res.status(500).json({
-                  message:
-                     "Server error"
-               });
-            }
-
-            if (
-               results.length === 0
-            ) {
-
-               return res.status(400).json({
-                  message:
-                     "User not found"
-               });
-            }
-
-            const user =
-               results[0];
-
-            // Compare Password
-            const isMatch =
-               await bcrypt.compare(
-                  password,
-                  user.password
-               );
-
-            if (!isMatch) {
-
-               return res.status(400).json({
-                  message:
-                     "Invalid password"
-               });
-            }
-
-            /**
-             * Generate JWT Token
-             */
-            const token =
-               jwt.sign(
-                  {
-                     id: user.id,
-                     email: user.email
-                  },
-                  "secretkey",
-                  {
-                     expiresIn: "1d"
-                  }
-               );
-
-            /**
-             * Save Login History
-             */
-            const loginSql =
-
-               "INSERT INTO login_history (username, email, ip_address) VALUES (?, ?, ?)";
-
-            db.query(
-
-               loginSql,
-
-               [
-                  user.username,
-                  user.email,
-                  req.ip
-               ],
-
-               (err) => {
-
-                  if (err) {
-
-                     console.log(err);
-
-                  } else {
-
-                     console.log(
-                        "✅ Login history saved"
-                     );
-
-                  }
-
-               }
-            );
-
-            res.json({
-               message:
-                  "Login successful",
-               token
-            });
-
-         }
-      );
-   }
-);
-
-/**
- * ==================================
- * SOCKET.IO CONNECTION
- * ==================================
- */
 io.on("connection", (socket) => {
 
    console.log(
-      "🟢 New user connected"
+      "🟢 User Connected"
    );
 
-   /**
-    * JOIN ROOM
-    */
+   // ==========================
+   // JOIN ROOM
+   // ==========================
+
    socket.on(
       "joinRoom",
+
       (data: JoinRoomData) => {
 
          const {
@@ -294,18 +471,19 @@ io.on("connection", (socket) => {
             return;
          }
 
-         // Join Room
          socket.join(user.room);
 
-         /**
-          * LOAD OLD MESSAGES
-          */
+         // Load old messages
          const loadSql =
+
             "SELECT * FROM messages WHERE room = ? ORDER BY created_at ASC";
 
          db.query(
+
             loadSql,
+
             [user.room],
+
             (
                err,
                results: any
@@ -323,65 +501,85 @@ io.on("connection", (socket) => {
                      ) => {
 
                         socket.emit(
+
                            "message",
+
                            formatMessage(
                               msg.username,
                               msg.text
                            )
+
                         );
 
                      }
                   );
+
                }
+
             }
          );
 
-         /**
-          * WELCOME USER
-          */
+         // Welcome message
          socket.emit(
+
             "message",
+
             formatMessage(
+
                BOT_NAME,
+
                "Welcome to XeroxChat 🚀"
+
             )
+
          );
 
-         /**
-          * BROADCAST USER JOIN
-          */
+         // Broadcast join
          socket.broadcast
             .to(user.room)
             .emit(
+
                "message",
+
                formatMessage(
+
                   BOT_NAME,
+
                   `${user.username} joined the chat`
+
                )
+
             );
 
-         /**
-          * UPDATE ROOM USERS
-          */
+         // Room users
          io.to(user.room).emit(
+
             "roomUsers",
+
             {
+
                room:
                   user.room,
+
                users:
                   getRoomUsers(
                      user.room
                   ),
+
             }
+
          );
+
       }
    );
 
-   /**
-    * TYPING INDICATOR
-    */
+   // ==========================
+   // TYPING INDICATOR
+   // ==========================
+
    socket.on(
       "typing",
+
       (username) => {
 
          socket.broadcast.emit(
@@ -392,11 +590,13 @@ io.on("connection", (socket) => {
       }
    );
 
-   /**
-    * CHAT MESSAGE
-    */
+   // ==========================
+   // CHAT MESSAGE
+   // ==========================
+
    socket.on(
       "chatMessage",
+
       (msg: string) => {
 
          const user =
@@ -408,41 +608,52 @@ io.on("connection", (socket) => {
             return;
          }
 
-         /**
-          * SAVE USER MESSAGE
-          */
-         const userSql =
+         console.log(
+            `💬 ${user.username}: ${msg}`
+         );
+
+         // Save user message
+         const saveSql =
+
             "INSERT INTO messages (username, room, text) VALUES (?, ?, ?)";
 
          db.query(
-            userSql,
+
+            saveSql,
+
             [
                user.username,
                user.room,
                msg
             ],
+
             (err) => {
 
                if (err) {
+
                   console.log(err);
+
                }
+
             }
          );
 
-         /**
-          * SEND USER MESSAGE
-          */
+         // Send message
          io.to(user.room).emit(
+
             "message",
+
             formatMessage(
                user.username,
                msg
             )
+
          );
 
-         /**
-          * SMART CHATBOT
-          */
+         // ======================
+         // SMART CHATBOT
+         // ======================
+
          let botReply =
             "Interesting 😊";
 
@@ -484,17 +695,6 @@ io.on("connection", (socket) => {
 
          else if (
             lowerMsg.includes(
-               "database"
-            )
-         ) {
-
-            botReply =
-               "Messages are stored permanently using MySQL database.";
-
-         }
-
-         else if (
-            lowerMsg.includes(
                "bye"
             )
          ) {
@@ -515,49 +715,54 @@ io.on("connection", (socket) => {
 
          }
 
-         /**
-          * SEND BOT REPLY
-          */
+         // Bot reply
          setTimeout(() => {
 
             io.to(user.room).emit(
+
                "message",
+
                formatMessage(
                   BOT_NAME,
                   botReply
                )
+
             );
 
-            /**
-             * SAVE BOT REPLY
-             */
-            const botSql =
-               "INSERT INTO messages (username, room, text) VALUES (?, ?, ?)";
-
+            // Save bot message
             db.query(
-               botSql,
+
+               saveSql,
+
                [
                   BOT_NAME,
                   user.room,
                   botReply
                ],
+
                (err) => {
 
                   if (err) {
+
                      console.log(err);
+
                   }
+
                }
             );
 
          }, 1000);
+
       }
    );
 
-   /**
-    * USER DISCONNECT
-    */
+   // ==========================
+   // DISCONNECT
+   // ==========================
+
    socket.on(
       "disconnect",
+
       () => {
 
          const user =
@@ -568,43 +773,58 @@ io.on("connection", (socket) => {
          if (user) {
 
             io.to(user.room).emit(
+
                "message",
+
                formatMessage(
+
                   BOT_NAME,
+
                   `${user.username} left the chat`
+
                )
+
             );
 
-            /**
-             * UPDATE USERS
-             */
             io.to(user.room).emit(
+
                "roomUsers",
+
                {
+
                   room:
                      user.room,
+
                   users:
                      getRoomUsers(
                         user.room
                      ),
+
                }
+
             );
+
          }
 
          console.log(
-            "🔴 User disconnected"
+            "🔴 User Disconnected"
          );
+
       }
    );
+
 });
 
-/**
- * START SERVER
- */
+// =====================================
+// START SERVER
+// =====================================
+
 server.listen(PORT, () => {
 
    console.log(
-      `🚀 XeroxChat server running on PORT ${PORT}`
+
+      `🚀 XeroxChat Server Running on PORT ${PORT}`
+
    );
 
 });

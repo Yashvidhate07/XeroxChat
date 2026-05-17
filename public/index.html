@@ -10,164 +10,360 @@
       content="width=device-width, initial-scale=1.0"
    />
 
-   <meta
-      http-equiv="X-UA-Compatible"
-      content="ie=edge"
-   />
-
-   <!-- Favicon -->
-   <link
-      rel="shortcut icon"
-      href="img/icons8-chat-64.png"
-      type="image/x-icon"
-   />
+   <title>XeroxChat | AI Real-Time Chat</title>
 
    <!-- Font Awesome -->
    <link
       rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/all.min.css"
-      integrity="sha256-mmgLkCYLUQbXn0B1SRqzHar6dCnv9oZFPEC1g1cwlkk="
-      crossorigin="anonymous"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
    />
 
-   <!-- Main CSS -->
-   <link
-      rel="stylesheet"
-      href="css/style.css"
-   />
+   <style>
 
-   <!-- Website Title -->
-   <title>
-      XeroxChat | Real-Time Chat App
-   </title>
+      * {
+
+         margin: 0;
+
+         padding: 0;
+
+         box-sizing: border-box;
+
+         font-family: Arial, Helvetica, sans-serif;
+
+      }
+
+      body {
+
+         background: #1b1b3a;
+
+         min-height: 100vh;
+
+         display: flex;
+
+         justify-content: center;
+
+         align-items: center;
+
+         padding: 20px;
+
+      }
+
+      .container {
+
+         width: 100%;
+
+         max-width: 500px;
+
+         background: #2d2d4f;
+
+         border-radius: 20px;
+
+         overflow: hidden;
+
+         box-shadow: 0px 0px 25px rgba(0,0,0,0.4);
+
+      }
+
+      .header {
+
+         background: #3b3b63;
+
+         padding: 25px;
+
+         text-align: center;
+
+      }
+
+      .header h1 {
+
+         color: white;
+
+         font-size: 42px;
+
+      }
+
+      .header p {
+
+         color: #cbd5e1;
+
+         margin-top: 10px;
+
+      }
+
+      .main {
+
+         padding: 30px;
+
+      }
+
+      .top-buttons {
+
+         display: flex;
+
+         gap: 15px;
+
+         margin-bottom: 25px;
+
+      }
+
+      .top-buttons a {
+
+         flex: 1;
+
+         text-align: center;
+
+         padding: 14px;
+
+         border-radius: 10px;
+
+         background: #bcd4e6;
+
+         color: #1b1b3a;
+
+         text-decoration: none;
+
+         font-weight: bold;
+
+         transition: 0.3s;
+
+      }
+
+      .top-buttons a:hover {
+
+         background: white;
+
+         transform: scale(1.03);
+
+      }
+
+      .form-group {
+
+         margin-bottom: 22px;
+
+      }
+
+      label {
+
+         color: white;
+
+         display: block;
+
+         margin-bottom: 8px;
+
+         font-size: 18px;
+
+      }
+
+      input,
+      select {
+
+         width: 100%;
+
+         padding: 15px;
+
+         border-radius: 10px;
+
+         border: none;
+
+         font-size: 16px;
+
+         background: #d6e4f0;
+
+      }
+
+      .join-btn {
+
+         width: 100%;
+
+         padding: 16px;
+
+         border: none;
+
+         border-radius: 12px;
+
+         background: #bcd4e6;
+
+         color: #1b1b3a;
+
+         font-size: 18px;
+
+         font-weight: bold;
+
+         cursor: pointer;
+
+         transition: 0.3s;
+
+      }
+
+      .join-btn:hover {
+
+         background: white;
+
+         transform: scale(1.02);
+
+      }
+
+      .features {
+
+         margin-top: 35px;
+
+      }
+
+      .features h2 {
+
+         color: white;
+
+         margin-bottom: 20px;
+
+         text-align: center;
+
+      }
+
+      .feature {
+
+         background: #3a3a5f;
+
+         margin-bottom: 15px;
+
+         padding: 15px;
+
+         border-radius: 12px;
+
+         color: white;
+
+         display: flex;
+
+         align-items: center;
+
+         gap: 15px;
+
+         transition: 0.3s;
+
+      }
+
+      .feature:hover {
+
+         transform: translateY(-3px);
+
+         background: #454570;
+
+      }
+
+      .feature i {
+
+         font-size: 22px;
+
+         color: #9bd1ff;
+
+      }
+
+      .footer {
+
+         text-align: center;
+
+         color: #d1d5db;
+
+         padding: 20px;
+
+         font-size: 14px;
+
+      }
+
+   </style>
 
 </head>
 
 <body>
 
-   <div class="join-container">
+   <div class="container">
 
-      <!-- Header -->
-      <header class="join-header">
+      <!-- HEADER -->
+      <div class="header">
 
-         <h1 style="color: #f5f6f7">
-
-            <i class="fas fa-comment-dots"></i>
-
+         <h1>
+            <i class="fas fa-comments"></i>
             XeroxChat
-
          </h1>
 
-      </header>
+         <p>
+            AI Powered Real-Time Chat Platform
+         </p>
 
-      <!-- Main Content -->
-      <main class="join-main">
+      </div>
 
-         <!-- Auth Buttons -->
-         <div
-            style="
-               display:flex;
-               justify-content:center;
-               gap:10px;
-               margin-bottom:25px;
-            "
-         >
+      <!-- MAIN -->
+      <div class="main">
 
-            <a
-               href="login.html"
-               class="btn"
-            >
+         <!-- LOGIN REGISTER -->
+         <div class="top-buttons">
 
-               <i class="fas fa-sign-in-alt"></i>
-
+            <a href="login.html">
+               <i class="fas fa-right-to-bracket"></i>
                Login
-
             </a>
 
-            <a
-               href="register.html"
-               class="btn"
-            >
-
+            <a href="register.html">
                <i class="fas fa-user-plus"></i>
-
                Register
-
             </a>
 
          </div>
 
-         <!-- Join Form -->
+         <!-- FORM -->
          <form action="chat.html">
 
-            <!-- Username -->
-            <div class="form-control">
+            <div class="form-group">
 
-               <label
-                  style="color:#f5f6f7"
-                  for="username"
-               >
-
+               <label>
                   Username
-
                </label>
 
                <input
                   type="text"
                   name="username"
-                  id="username"
-                  placeholder="Enter username..."
+                  placeholder="Enter Username"
                   required
                />
 
             </div>
 
-            <!-- Room Selection -->
-            <div class="form-control">
+            <div class="form-group">
 
-               <label
-                  style="color:#f5f6f7"
-                  for="room"
-               >
-
+               <label>
                   Select Room
-
                </label>
 
                <select
                   name="room"
-                  id="room"
                >
 
-                  <option value="Room-1">
-                     Room-1
+                  <option>
+                     Developers Hub
                   </option>
 
-                  <option value="Room-2">
-                     Room-2
+                  <option>
+                     AI Community
                   </option>
 
-                  <option value="Room-3">
-                     Room-3
+                  <option>
+                     Placement Discussion
                   </option>
 
-                  <option value="Room-4">
-                     Room-4
+                  <option>
+                     Project Collaboration
                   </option>
 
-                  <option value="Room-5">
-                     Room-5
+                  <option>
+                     General Chat
                   </option>
 
                </select>
 
             </div>
 
-            <!-- Join Button -->
             <button
                type="submit"
-               class="btn"
-               style="width:100%"
+               class="join-btn"
             >
 
                <i class="fas fa-comments"></i>
@@ -178,57 +374,83 @@
 
          </form>
 
-         <!-- Features -->
-         <div
-            style="
-               margin-top:30px;
-               color:#f5f6f7;
-               text-align:center;
-               line-height:2;
-            "
-         >
+         <!-- FEATURES -->
+         <div class="features">
 
-            <p>
-               🚀 Real-Time Messaging
-            </p>
+            <h2>
+               Why XeroxChat?
+            </h2>
 
-            <p>
-               🔐 JWT Authentication
-            </p>
+            <div class="feature">
 
-            <p>
-               💾 MySQL Database Storage
-            </p>
+               <i class="fas fa-bolt"></i>
 
-            <p>
-               ⚡ Socket.IO Communication
-            </p>
+               <span>
+                  Real-Time Messaging with Socket.IO
+               </span>
 
-            <p>
-               🤖 Smart ChatBot Integration
-            </p>
+            </div>
+
+            <div class="feature">
+
+               <i class="fas fa-lock"></i>
+
+               <span>
+                  Secure JWT Authentication System
+               </span>
+
+            </div>
+
+            <div class="feature">
+
+               <i class="fas fa-database"></i>
+
+               <span>
+                  Persistent MySQL Cloud Database
+               </span>
+
+            </div>
+
+            <div class="feature">
+
+               <i class="fas fa-robot"></i>
+
+               <span>
+                  Smart AI ChatBot Integration
+               </span>
+
+            </div>
+
+            <div class="feature">
+
+               <i class="fas fa-user-shield"></i>
+
+               <span>
+                  Encrypted User Login & Security
+               </span>
+
+            </div>
+
+            <div class="feature">
+
+               <i class="fas fa-cloud"></i>
+
+               <span>
+                  Render + Railway Cloud Deployment
+               </span>
+
+            </div>
 
          </div>
 
-      </main>
+      </div>
 
-      <!-- Footer -->
-      <footer
-         style="
-            margin-top:25px;
-            text-align:center;
-            color:#f5f6f7;
-         "
-      >
+      <!-- FOOTER -->
+      <div class="footer">
 
-         <div class="credit">
+         © 2026 Yash Vidhate | XeroxChat
 
-            © 2026 Yash Vidhate |
-            XeroxChat
-
-         </div>
-
-      </footer>
+      </div>
 
    </div>
 
